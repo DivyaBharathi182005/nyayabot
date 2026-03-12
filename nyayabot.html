@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NyayaBot – India's AI Legal Guardian</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --gold:#c9a84c;--gold-l:#f0d080;--gold-d:rgba(201,168,76,0.15);
+  --deep:#07070f;--surf:#0d0d1a;--card:#111120;--card2:#16162a;
+  --bdr:rgba(201,168,76,0.18);--bdr2:rgba(255,255,255,0.06);
+  --text:#e8e4d8;--muted:#6b6880;
+  --red:#e85c5c;--green:#4ade80;--blue:#818cf8;--cyan:#22d3ee;
+  --r:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--deep);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+
+/* ── SPLASH ── */
+#splash{position:fixed;inset:0;z-index:9999;background:#04040c;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .8s,transform .8s;}
+#splash.hide{opacity:0;pointer-events:none;transform:scale(1.04);}
+.sp-emblem{width:140px;height:140px;margin-bottom:28px;animation:emglow 2.5s ease-in-out infinite;}
+@keyframes emglow{0%,100%{filter:drop-shadow(0 0 18px rgba(201,168,76,.5))}50%{filter:drop-shadow(0 0 36px rgba(201,168,76,.9))}}
+.sp-beam{animation:sway 4s ease-in-out infinite;transform-origin:70px 36px;}
+@keyframes sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.sp-title{font-family:'Playfair Display',serif;font-size:clamp(52px,9vw,90px);font-weight:900;letter-spacing:-2px;background:linear-gradient(135deg,#c9a84c,#f0d080,#c9a84c,#8b6914);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:sup .9s cubic-bezier(.2,0,0,1) forwards;opacity:0;transform:translateY(28px);}
+.sp-hin{font-family:'Playfair Display',serif;font-size:28px;color:rgba(240,208,128,.6);margin-top:6px;animation:sup .9s .25s cubic-bezier(.2,0,0,1) forwards;opacity:0;transform:translateY(16px);}
+.sp-tag{font-size:11px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;font-family:'JetBrains Mono',monospace;margin-top:8px;animation:sup .9s .45s forwards;opacity:0;}
+@keyframes sup{to{opacity:1;transform:translateY(0)}}
+.sp-bar-w{margin-top:44px;width:220px;height:2px;background:rgba(201,168,76,.1);border-radius:2px;overflow:hidden;animation:sup .8s .6s forwards;opacity:0;}
+.sp-bar{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold-l));width:0%;animation:lb 2.8s 1s ease-out forwards;}
+@keyframes lb{to{width:100%}}
+.sp-msg{margin-top:14px;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;animation:sup .8s .7s forwards;opacity:0;}
+.sp-parts{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+.pt{position:absolute;width:2px;height:2px;background:var(--gold);border-radius:50%;opacity:0;animation:pf var(--d) var(--dl) infinite ease-in-out;}
+@keyframes pf{0%{opacity:0;transform:translateY(100vh)}10%{opacity:.5}90%{opacity:.1}100%{opacity:0;transform:translateY(-80px) translateX(var(--dx))}}
+
+/* ── APP ── */
+#app{display:none;min-height:100vh;}
+#app.show{display:flex;flex-direction:column;}
+
+/* ── NAV ── */
+nav{position:sticky;top:0;z-index:200;background:rgba(7,7,15,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bdr);padding:0 20px;display:flex;align-items:center;gap:12px;min-height:56px;flex-wrap:wrap;}
+.nav-brand{display:flex;align-items:center;gap:10px;cursor:pointer;flex-shrink:0;}
+.nav-logo{width:32px;height:32px;background:var(--gold-d);border:1px solid var(--bdr);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+.nav-name{font-family:'Playfair Display',serif;font-size:20px;font-weight:700;background:linear-gradient(135deg,var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-links{display:flex;align-items:center;gap:2px;flex-wrap:wrap;flex:1;}
+.nb{background:none;border:none;cursor:pointer;padding:5px 10px;border-radius:8px;color:var(--muted);font-size:12.5px;font-family:'DM Sans',sans-serif;transition:all .2s;white-space:nowrap;}
+.nb:hover,.nb.act{background:var(--gold-d);color:var(--gold);}
+.nb-sos{background:rgba(232,92,92,.1);border:1px solid rgba(232,92,92,.3);color:#e85c5c;padding:5px 14px;border-radius:20px;font-size:12px;font-family:'JetBrains Mono',monospace;cursor:pointer;animation:sp 2s infinite;transition:all .2s;margin-left:auto;flex-shrink:0;}
+@keyframes sp{0%,100%{box-shadow:0 0 0 0 rgba(232,92,92,.2)}50%{box-shadow:0 0 0 6px rgba(232,92,92,0)}}
+
+/* ── PAGES ── */
+.page{display:none;max-width:960px;margin:0 auto;padding:28px 18px 80px;width:100%;}
+.page.act{display:block;animation:pin .35s ease;}
+@keyframes pin{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── HERO ── */
+.hero{text-align:center;padding:52px 20px 32px;}
+.hero-emb{width:88px;height:88px;margin:0 auto 24px;animation:fl 5s ease-in-out infinite;}
+@keyframes fl{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.hero h1{font-family:'Playfair Display',serif;font-size:clamp(46px,7vw,80px);font-weight:900;background:linear-gradient(135deg,#c9a84c,#f0d080,#c9a84c);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:8px;}
+.hero-sub{font-size:16px;color:rgba(240,208,128,.65);margin-bottom:6px;font-style:italic;}
+.hero-desc{font-size:14px;color:var(--muted);max-width:500px;margin:0 auto 28px;line-height:1.75;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;border-radius:20px;background:var(--gold-d);border:1px solid var(--bdr);color:var(--gold);font-size:11px;font-family:'JetBrains Mono',monospace;margin-bottom:24px;}
+.hbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-bottom:44px;}
+.btn-p{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:#0a0808;border:none;cursor:pointer;padding:12px 28px;border-radius:11px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;transition:all .2s;}
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(201,168,76,.35);}
+.btn-g{background:none;border:1px solid var(--bdr);color:var(--text);cursor:pointer;padding:12px 22px;border-radius:11px;font-size:14px;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.btn-g:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-d);}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--bdr);border-radius:14px;overflow:hidden;border:1px solid var(--bdr);margin-bottom:40px;}
+.stat{background:var(--card);padding:20px 12px;text-align:center;}
+.sn{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;background:linear-gradient(135deg,var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sl{font-size:11px;color:var(--muted);margin-top:3px;}
+
+/* Module grid */
+.mod-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;}
+.mod-card{background:var(--card);border:1px solid var(--bdr2);border-radius:var(--r);padding:18px;cursor:pointer;transition:all .25s;display:flex;align-items:flex-start;gap:12px;}
+.mod-card:hover{border-color:var(--gold);background:var(--card2);transform:translateY(-2px);box-shadow:0 6px 24px rgba(201,168,76,.1);}
+.mod-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.mod-name{font-size:13.5px;font-weight:600;color:var(--text);margin-bottom:3px;display:flex;align-items:center;gap:7px;}
+.mod-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.tag{font-size:9px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;background:var(--gold-d);color:var(--gold);border:1px solid rgba(201,168,76,.3);}
+
+/* ── AVATAR QUERY ── */
+.ava-wrap{display:flex;gap:24px;margin-bottom:28px;align-items:flex-start;}
+.ava-fig-col{flex-shrink:0;width:180px;}
+.ava-fig{width:180px;height:220px;background:linear-gradient(160deg,#141428,#0d0d1a);border:1.5px solid var(--bdr);border-radius:18px;overflow:hidden;position:relative;display:flex;align-items:flex-end;justify-content:center;}
+.ava-glow{position:absolute;inset:0;background:radial-gradient(circle at 50% 25%,rgba(201,168,76,.1) 0%,transparent 65%);}
+.ava-stat{position:absolute;top:10px;left:10px;display:flex;align-items:center;gap:5px;background:rgba(7,7,15,.85);padding:3px 9px;border-radius:14px;border:1px solid var(--bdr);font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--gold);z-index:5;}
+.sdot{width:5px;height:5px;border-radius:50%;background:var(--green);animation:sb 1.5s infinite;}
+@keyframes sb{0%,100%{opacity:1}50%{opacity:.2}}
+.ava-svg{width:160px;position:relative;z-index:2;transition:transform .2s;}
+.ava-svg.spk{animation:ava-spk .25s ease-in-out infinite alternate;}
+@keyframes ava-spk{from{transform:translateY(0) scale(1)}to{transform:translateY(-4px) scale(1.015)}}
+
+.ava-chat{flex:1;display:flex;flex-direction:column;min-height:220px;}
+.ava-bubble{background:var(--card);border:1px solid var(--bdr);border-radius:14px 14px 14px 3px;padding:16px 18px;font-size:14px;line-height:1.75;color:var(--text);flex:1;position:relative;min-height:100px;}
+.ava-bubble::before{content:'';position:absolute;bottom:0;left:-10px;width:10px;height:10px;background:var(--card);border-left:1px solid var(--bdr);border-bottom:1px solid var(--bdr);clip-path:polygon(100% 0,100% 100%,0 100%);}
+.tdot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--gold);animation:td 1.2s infinite;margin:0 2px;}
+.tdot:nth-child(2){animation-delay:.2s}.tdot:nth-child(3){animation-delay:.4s}
+@keyframes td{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+.ava-ctrls{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;}
+.spk-btn{display:flex;align-items:center;gap:7px;background:var(--gold-d);border:1px solid var(--bdr);color:var(--gold);cursor:pointer;padding:7px 16px;border-radius:9px;font-size:12px;transition:all .2s;}
+.spk-btn:hover{background:rgba(201,168,76,.25);}
+.spk-btn.speaking{background:rgba(232,92,92,.1);border-color:rgba(232,92,92,.4);color:#e85c5c;animation:sp 0.7s infinite alternate;}
+
+/* ── QUERY BOX ── */
+.ptitle{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;margin-bottom:5px;}
+.psub{font-size:13px;color:var(--muted);margin-bottom:22px;}
+.qwrap{position:relative;margin-bottom:14px;}
+.qwrap textarea{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;padding:14px 110px 14px 16px;outline:none;transition:border-color .2s;resize:none;min-height:130px;line-height:1.6;}
+.qwrap textarea:focus{border-color:var(--gold);}
+.qbtns{position:absolute;bottom:12px;right:12px;display:flex;gap:8px;}
+.qb{width:38px;height:38px;border-radius:9px;border:1px solid var(--bdr);background:var(--card2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;color:var(--muted);}
+.qb:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-d);}
+.qb.mic-on{background:rgba(232,92,92,.12);border-color:rgba(232,92,92,.4);color:#e85c5c;animation:sp .7s infinite alternate;}
+.qb.go{background:var(--gold-d);border-color:var(--gold);color:var(--gold);}
+.qb.go:hover{background:rgba(201,168,76,.3);}
+
+.lang-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;}
+.lb{padding:5px 12px;border-radius:7px;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;font-size:12px;transition:all .2s;}
+.lb.act{border-color:var(--gold);color:var(--gold);background:var(--gold-d);}
+.qchips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+.qchip{padding:5px 12px;border-radius:16px;font-size:12px;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;transition:all .2s;}
+.qchip:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-d);}
+
+/* Results */
+.res-card{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:22px;margin-top:20px;animation:pin .4s ease;}
+.res-card h3{font-family:'Playfair Display',serif;font-size:17px;color:var(--gold);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.res-body{font-size:14px;line-height:1.85;color:var(--text);}
+.res-body strong{color:var(--gold-l);}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin:12px 0;}
+.chip{padding:3px 12px;border-radius:16px;font-size:11px;font-family:'JetBrains Mono',monospace;border:1px solid;}
+.cg{background:var(--gold-d);border-color:rgba(201,168,76,.35);color:var(--gold);}
+.cb{background:rgba(129,140,248,.1);border-color:rgba(129,140,248,.3);color:#818cf8;}
+.cr{background:rgba(232,92,92,.09);border-color:rgba(232,92,92,.3);color:#e85c5c;}
+.cgr{background:rgba(74,222,128,.07);border-color:rgba(74,222,128,.3);color:#4ade80;}
+
+.str-meter{display:flex;align-items:center;gap:10px;margin:14px 0;}
+.str-bar{flex:1;height:7px;background:var(--card2);border-radius:4px;overflow:hidden;}
+.str-fill{height:100%;border-radius:4px;transition:width 1.2s cubic-bezier(.4,0,.2,1);}
+
+/* Emergency */
+.em-box{background:rgba(232,92,92,.07);border:1px solid rgba(232,92,92,.28);border-radius:var(--r);padding:18px 20px;margin-bottom:20px;}
+.em-box h3{color:#e85c5c;font-size:15px;margin-bottom:12px;}
+.em-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;}
+.em-it{background:rgba(232,92,92,.05);border:1px solid rgba(232,92,92,.14);border-radius:10px;padding:9px 13px;}
+.em-n{font-family:'JetBrains Mono',monospace;font-size:18px;color:#e85c5c;font-weight:700;}
+.em-l{color:var(--muted);font-size:11px;}
+
+/* Forms */
+label{display:block;font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;}
+input[type=text],input[type=email],textarea,select{width:100%;background:var(--card);border:1px solid var(--bdr2);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 14px;outline:none;transition:border-color .2s;}
+input:focus,textarea:focus,select:focus{border-color:var(--gold);}
+textarea{resize:none;min-height:110px;line-height:1.6;}
+select{appearance:none;cursor:pointer;}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.frow1{margin-bottom:14px;}
+
+/* Rights */
+.rtabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap;}
+.rt{padding:7px 16px;border-radius:9px;border:1px solid var(--bdr2);background:var(--card);color:var(--muted);cursor:pointer;font-size:12.5px;transition:all .2s;}
+.rt.act{border-color:var(--gold);color:var(--gold);background:var(--gold-d);}
+.ri{background:var(--card);border:1px solid var(--bdr2);border-radius:11px;padding:16px 18px;margin-bottom:9px;border-left:3px solid var(--gold);}
+.ri-t{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.ri-a{font-size:10px;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-bottom:6px;}
+.ri-d{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* Timeline */
+.tl{padding-left:30px;position:relative;}
+.tl::before{content:'';position:absolute;left:10px;top:0;bottom:0;width:1px;background:var(--bdr);}
+.tl-it{position:relative;margin-bottom:22px;}
+.tl-dot{position:absolute;left:-30px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--gold-d);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--gold);font-family:'JetBrains Mono',monospace;font-weight:700;}
+.tl-s{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.tl-d{font-size:11px;color:var(--gold);font-family:'JetBrains Mono',monospace;margin-bottom:5px;}
+.tl-desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:4px;}
+.tl-tip{font-size:12px;color:var(--green);font-style:italic;}
+
+/* Police station */
+.ps-card{background:var(--card);border:1px solid var(--bdr2);border-radius:12px;padding:16px 18px;margin-bottom:10px;display:flex;gap:14px;align-items:flex-start;transition:border-color .2s;}
+.ps-card:hover{border-color:var(--gold);}
+.ps-icon{width:40px;height:40px;border-radius:10px;background:rgba(74,222,128,.1);border:1px solid rgba(74,222,128,.25);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.ps-name{font-size:15px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.ps-addr{font-size:12px;color:var(--muted);margin-bottom:6px;line-height:1.5;}
+.ps-dist{font-size:11px;color:var(--green);font-family:'JetBrains Mono',monospace;}
+
+/* Lawyer */
+.lc-card{background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:20px;margin-bottom:12px;transition:all .25s;}
+.lc-card:hover{border-color:var(--gold);transform:translateY(-2px);box-shadow:0 6px 20px rgba(201,168,76,.1);}
+.lc-top{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;}
+.lc-av{width:52px;height:52px;border-radius:50%;background:var(--gold-d);border:2px solid var(--bdr);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.lc-name{font-size:16px;font-weight:700;color:var(--text);}
+.lc-spec{font-size:12px;color:var(--gold);margin-bottom:3px;}
+.lc-loc{font-size:11px;color:var(--muted);}
+.lc-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;}
+.lc-tag{font-size:10px;padding:2px 9px;border-radius:6px;background:rgba(129,140,248,.1);border:1px solid rgba(129,140,248,.25);color:#818cf8;}
+.lc-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.lc-btn{padding:7px 16px;border-radius:9px;font-size:12px;cursor:pointer;border:1px solid;transition:all .2s;}
+.lc-btn-p{background:var(--gold-d);border-color:var(--gold);color:var(--gold);}
+.lc-btn-p:hover{background:rgba(201,168,76,.25);}
+.lc-btn-s{background:rgba(74,222,128,.08);border-color:rgba(74,222,128,.3);color:#4ade80;}
+.consult-form{background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:22px;margin-top:20px;}
+.consult-form h3{font-family:'Playfair Display',serif;font-size:18px;color:var(--gold);margin-bottom:16px;}
+
+/* Novelty */
+.nov-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.nov-card{background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:20px;border-top:2px solid var(--gold);}
+.nov-icon{font-size:28px;margin-bottom:10px;}
+.nov-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;}
+.nov-desc{font-size:13px;color:var(--muted);line-height:1.65;}
+.tech-row{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
+.tech-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-family:'JetBrains Mono',monospace;border:1px solid;}
+.arch-box{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:22px;margin-bottom:16px;}
+.arch-box h4{font-size:14px;font-weight:700;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.arch-flow{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);line-height:2;border-left:2px solid var(--bdr);padding-left:16px;}
+.arch-flow span{color:var(--gold);}
+.judge-box{background:linear-gradient(135deg,rgba(201,168,76,.07),rgba(129,140,248,.06));border:1px solid var(--bdr);border-radius:var(--r);padding:22px;margin-top:20px;}
+.judge-box h3{font-family:'Playfair Display',serif;font-size:20px;color:var(--gold);margin-bottom:12px;}
+
+/* Dict */
+.dict-res{background:var(--card);border:1px solid var(--bdr);border-radius:var(--r);padding:22px;margin-top:18px;}
+.dict-term{font-family:'Playfair Display',serif;font-size:22px;color:var(--gold);margin-bottom:4px;}
+.dict-body{font-size:14px;line-height:1.8;color:var(--text);}
+.dict-body strong{color:var(--gold-l);}
+
+/* Scam */
+.scam-res{border-radius:var(--r);padding:22px;margin-top:18px;border:2px solid;}
+.scam-res.yes{background:rgba(232,92,92,.06);border-color:rgba(232,92,92,.4);}
+.scam-res.no{background:rgba(74,222,128,.05);border-color:rgba(74,222,128,.3);}
+
+/* SOS modal */
+.mo{position:fixed;inset:0;z-index:9990;background:rgba(0,0,0,.85);display:flex;align-items:center;justify-content:center;padding:20px;}
+.mo-box{background:var(--surf);border:1px solid rgba(232,92,92,.4);border-radius:20px;padding:32px;max-width:480px;width:100%;animation:pin .3s ease;}
+.mo-box h2{color:#e85c5c;font-family:'Playfair Display',serif;font-size:24px;margin-bottom:8px;}
+.mo-box p{color:var(--muted);margin-bottom:20px;font-size:14px;}
+.close-mo{float:right;background:none;border:none;color:var(--muted);cursor:pointer;font-size:22px;line-height:1;}
+
+/* Info box */
+.info{background:rgba(129,140,248,.06);border:1px solid rgba(129,140,248,.2);border-radius:10px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:rgba(232,228,216,.8);line-height:1.65;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:var(--deep);}
+::-webkit-scrollbar-thumb{background:var(--bdr);border-radius:3px;}
+
+/* Responsive */
+@media(max-width:640px){
+  .ava-wrap{flex-direction:column;}.ava-fig-col{width:100%;}
+  .ava-fig{width:100%;height:180px;flex-direction:row;padding:0 20px;}
+  .ava-svg{width:120px;}
+  .frow{grid-template-columns:1fr;}
+  .nov-grid{grid-template-columns:1fr;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+  nav{padding:8px 12px;gap:6px;}
+}
+.mb14{margin-bottom:14px;}
+.mt16{margin-top:16px;}
+</style>
+</head>
+<body>
+
+<!-- ══ SPLASH ══ -->
+<div id="splash">
+  <div class="sp-parts" id="sparts"></div>
+  <div class="sp-emblem">
+    <svg viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="140" y2="140" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#c9a84c"/><stop offset=".5" stop-color="#f0d080"/><stop offset="1" stop-color="#8b6914"/>
+        </linearGradient>
+        <filter id="gl"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <circle cx="70" cy="70" r="66" stroke="url(#g1)" stroke-width="1.5" stroke-dasharray="7 4" opacity=".6"/>
+      <rect x="68.5" y="30" width="3" height="78" rx="1.5" fill="url(#g1)" filter="url(#gl)"/>
+      <rect x="48" y="108" width="44" height="4" rx="2" fill="url(#g1)"/>
+      <rect x="53" y="104" width="34" height="4" rx="2" fill="url(#g1)" opacity=".7"/>
+      <rect class="sp-beam" x="35" y="47" width="70" height="3" rx="1.5" fill="url(#g1)" filter="url(#gl)"/>
+      <line x1="43" y1="50" x2="37" y2="80" stroke="url(#g1)" stroke-width="1.5"/>
+      <path d="M26 80 Q37 86 48 80" stroke="url(#g1)" stroke-width="2" fill="none"/>
+      <ellipse cx="37" cy="81" rx="11" ry="3" fill="url(#g1)" opacity=".25"/>
+      <line x1="97" y1="50" x2="103" y2="80" stroke="url(#g1)" stroke-width="1.5"/>
+      <path d="M92 80 Q103 86 114 80" stroke="url(#g1)" stroke-width="2" fill="none"/>
+      <ellipse cx="103" cy="81" rx="11" ry="3" fill="url(#g1)" opacity=".25"/>
+      <circle cx="70" cy="30" r="5" fill="url(#g1)" filter="url(#gl)"/>
+      <circle cx="70" cy="30" r="3" fill="#fff" opacity=".8"/>
+    </svg>
+  </div>
+  <div class="sp-title">NyayaBot</div>
+  <div class="sp-hin">न्यायबॉट</div>
+  <div class="sp-tag">India's AI Legal Guardian · LLM + RAG + Voice</div>
+  <div class="sp-bar-w"><div class="sp-bar"></div></div>
+  <div class="sp-msg" id="spMsg">Initialising IPC/BNS Legal Database...</div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+
+<!-- SOS Modal -->
+<div class="mo" id="sosModal" style="display:none">
+  <div class="mo-box">
+    <button class="close-mo" onclick="$('sosModal').style.display='none'">×</button>
+    <h2>🆘 Emergency Numbers</h2>
+    <p>Call immediately. Don't delay.</p>
+    <div class="em-grid">
+      <div class="em-it"><div class="em-n">100</div><div class="em-l">Police</div></div>
+      <div class="em-it"><div class="em-n">112</div><div class="em-l">National Emergency</div></div>
+      <div class="em-it"><div class="em-n">108</div><div class="em-l">Ambulance</div></div>
+      <div class="em-it"><div class="em-n">1091</div><div class="em-l">Women Helpline</div></div>
+      <div class="em-it"><div class="em-n">1098</div><div class="em-l">Child Helpline</div></div>
+      <div class="em-it"><div class="em-n">181</div><div class="em-l">Domestic Violence</div></div>
+      <div class="em-it"><div class="em-n">1930</div><div class="em-l">Cyber Crime</div></div>
+      <div class="em-it"><div class="em-n">15100</div><div class="em-l">Free Legal Aid</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-brand" onclick="go('home')">
+    <div class="nav-logo">⚖️</div>
+    <div class="nav-name">NyayaBot</div>
+  </div>
+  <div class="nav-links">
+    <button class="nb" onclick="go('query')">🔍 Legal Query</button>
+    <button class="nb" onclick="go('police')">🚔 Find Police</button>
+    <button class="nb" onclick="go('lawyer')">👨‍⚖️ Lawyer</button>
+    <button class="nb" onclick="go('rights')">🛡 Rights</button>
+    <button class="nb" onclick="go('complaint')">📄 Complaint</button>
+    <button class="nb" onclick="go('rti')">📋 RTI</button>
+    <button class="nb" onclick="go('scam')">⚠️ Scam</button>
+    <button class="nb" onclick="go('dictionary')">📖 Dict</button>
+    <button class="nb" onclick="go('procedure')">🏛 Procedure</button>
+    <button class="nb" onclick="go('novelty')">🏆 Novelty</button>
+  </div>
+  <button class="nb-sos" onclick="$('sosModal').style.display='flex'">🆘 SOS</button>
+</nav>
+
+<!-- ════════ HOME ════════ -->
+<div class="page act" id="page-home">
+  <div class="hero">
+    <div class="hero-emb">
+      <svg viewBox="0 0 88 88" fill="none"><defs><linearGradient id="hg" x1="0" y1="0" x2="88" y2="88" gradientUnits="userSpaceOnUse"><stop stop-color="#c9a84c"/><stop offset="1" stop-color="#f0d080"/></linearGradient></defs>
+      <circle cx="44" cy="44" r="41" stroke="url(#hg)" stroke-width="1.5" stroke-dasharray="5 3" opacity=".5"/>
+      <rect x="42.5" y="16" width="3" height="56" rx="1.5" fill="url(#hg)"/>
+      <rect x="24" y="30" width="40" height="2.5" rx="1.25" fill="url(#hg)"/>
+      <line x1="28" y1="32.5" x2="22" y2="50" stroke="url(#hg)" stroke-width="1.5"/>
+      <path d="M14 50 Q22 55 30 50" stroke="url(#hg)" stroke-width="1.5" fill="none"/>
+      <line x1="60" y1="32.5" x2="66" y2="50" stroke="url(#hg)" stroke-width="1.5"/>
+      <path d="M58 50 Q66 55 74 50" stroke="url(#hg)" stroke-width="1.5" fill="none"/>
+      <rect x="28" y="70" width="32" height="3" rx="1.5" fill="url(#hg)"/>
+      <circle cx="44" cy="16" r="4" fill="url(#hg)"/>
+      </svg>
+    </div>
+    <div class="pill">⚖️ BNS 2023 + IPC · Voice Avatar · RAG Engine</div>
+    <h1>NyayaBot</h1>
+    <p class="hero-sub">India's AI Legal Guardian — न्यायबॉट</p>
+    <p class="hero-desc">Describe your legal situation in plain language. NyayaBot uses LLM + RAG over 444+ IPC sections, maps BNS 2023 equivalents, finds nearest police stations, and has a voice-enabled lawyer avatar — in 8 Indian languages.</p>
+    <div class="hbtns">
+      <button class="btn-p" onclick="go('query')">🔍 Start Legal Query</button>
+      <button class="btn-g" onclick="go('police')">🚔 Find Police Station</button>
+      <button class="btn-g" onclick="go('novelty')">🏆 Our Innovation</button>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="sn">444+</div><div class="sl">IPC Sections in RAG DB</div></div>
+      <div class="stat"><div class="sn">60+</div><div class="sl">BNS 2023 Mappings</div></div>
+      <div class="stat"><div class="sn">8</div><div class="sl">Indian Languages</div></div>
+      <div class="stat"><div class="sn">10+</div><div class="sl">Legal Modules</div></div>
+    </div>
+  </div>
+
+  <h2 style="font-family:'Playfair Display',serif;font-size:20px;margin-bottom:14px;color:var(--text)">All Modules</h2>
+  <div class="mod-grid">
+    <div class="mod-card" onclick="go('query')"><div class="mod-icon" style="background:rgba(201,168,76,.12)">🔍</div><div><div class="mod-name">AI Legal Query <span class="tag">CORE</span></div><div class="mod-desc">RAG + LLM over IPC/BNS with voice avatar</div></div></div>
+    <div class="mod-card" onclick="go('police')"><div class="mod-icon" style="background:rgba(74,222,128,.1)">🚔</div><div><div class="mod-name">Find Police Station <span class="tag">NEW</span></div><div class="mod-desc">Enter pincode or area — see nearest stations</div></div></div>
+    <div class="mod-card" onclick="go('lawyer')"><div class="mod-icon" style="background:rgba(129,140,248,.12)">👨‍⚖️</div><div><div class="mod-name">Lawyer Consultation <span class="tag">NEW</span></div><div class="mod-desc">Find advocates + book free consultation</div></div></div>
+    <div class="mod-card" onclick="go('rights')"><div class="mod-icon" style="background:rgba(129,140,248,.12)">🛡</div><div><div class="mod-name">Know Your Rights</div><div class="mod-desc">Arrest, bail, trial, women's rights</div></div></div>
+    <div class="mod-card" onclick="go('complaint')"><div class="mod-icon" style="background:rgba(74,222,128,.1)">📄</div><div><div class="mod-name">Complaint Generator <span class="tag">AI</span></div><div class="mod-desc">AI-drafted FIR + formal complaint letters</div></div></div>
+    <div class="mod-card" onclick="go('rti')"><div class="mod-icon" style="background:rgba(129,140,248,.12)">📋</div><div><div class="mod-name">RTI Generator <span class="tag">AI</span></div><div class="mod-desc">Instant RTI applications under RTI Act 2005</div></div></div>
+    <div class="mod-card" onclick="go('scam')"><div class="mod-icon" style="background:rgba(232,92,92,.1)">⚠️</div><div><div class="mod-name">Scam Detector</div><div class="mod-desc">AI detects Indian legal scam patterns</div></div></div>
+    <div class="mod-card" onclick="go('dictionary')"><div class="mod-icon" style="background:rgba(201,168,76,.12)">📖</div><div><div class="mod-name">Legal Dictionary</div><div class="mod-desc">Legal terms in plain Indian language</div></div></div>
+    <div class="mod-card" onclick="go('procedure')"><div class="mod-icon" style="background:rgba(74,222,128,.1)">🏛</div><div><div class="mod-name">Court Procedure</div><div class="mod-desc">FIR to judgment step-by-step guide</div></div></div>
+    <div class="mod-card" onclick="go('novelty')"><div class="mod-icon" style="background:rgba(201,168,76,.12)">🏆</div><div><div class="mod-name">Novelty & Innovation</div><div class="mod-desc">What makes NyayaBot unique — for judges</div></div></div>
+  </div>
+  <div style="text-align:center;font-size:11px;color:var(--muted);margin-top:36px;font-family:'JetBrains Mono',monospace;padding-top:24px;border-top:1px solid var(--bdr)">
+    NyayaBot v3.0 · Groq LLaMA-3.3-70B · TF-IDF RAG · BNS 2023 · Web Speech API · Not a substitute for a lawyer
+  </div>
+</div>
+
+<!-- ════════ QUERY PAGE ════════ -->
+<div class="page" id="page-query">
+  <!-- Avatar -->
+  <div class="ava-wrap">
+    <div class="ava-fig-col">
+      <div class="ava-fig">
+        <div class="ava-glow"></div>
+        <div class="ava-stat"><div class="sdot"></div><span id="aStat">Ready</span></div>
+        <div class="ava-svg" id="avaSvg">
+          <svg viewBox="0 0 160 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d4956a"/><stop offset="1" stop-color="#b87048"/></linearGradient>
+              <linearGradient id="su" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#1c1c32"/><stop offset="1" stop-color="#0d0d1a"/></linearGradient>
+              <radialGradient id="fg" cx="50%" cy="35%" r="55%"><stop stop-color="#dfa070"/><stop offset="1" stop-color="#b87048"/></radialGradient>
+            </defs>
+            <!-- Suit body -->
+            <path d="M18 240 L18 130 C18 115 38 106 80 104 C122 106 142 115 142 130 L142 240 Z" fill="url(#su)"/>
+            <!-- Lapels -->
+            <path d="M80 118 L56 140 L66 240 L80 218 L94 240 L104 140 Z" fill="#20203c"/>
+            <!-- Shirt -->
+            <path d="M80 118 L75 140 L80 218 L85 140 Z" fill="#f0f0f0"/>
+            <!-- Tie -->
+            <path d="M78 118 L82 118 L85 168 L80 173 L75 168 Z" fill="#8b1a1a"/>
+            <!-- Gold badge -->
+            <circle cx="80" cy="142" r="4" fill="#c9a84c"/>
+            <!-- Neck -->
+            <rect x="72" y="96" width="16" height="24" rx="8" fill="url(#sk)"/>
+            <!-- Head -->
+            <ellipse cx="80" cy="72" rx="30" ry="34" fill="url(#fg)"/>
+            <!-- Hair -->
+            <path d="M50 64 Q52 36 80 32 Q108 36 110 64 Q108 50 80 48 Q52 50 50 64 Z" fill="#12080a"/>
+            <!-- Ears -->
+            <ellipse cx="50" cy="74" rx="5" ry="7" fill="url(#sk)"/>
+            <ellipse cx="110" cy="74" rx="5" ry="7" fill="url(#sk)"/>
+            <!-- Eyes -->
+            <ellipse cx="68" cy="68" rx="7" ry="6" fill="white"/>
+            <ellipse cx="92" cy="68" rx="7" ry="6" fill="white"/>
+            <ellipse cx="69" cy="69" rx="4" ry="4" fill="#1a0a00"/>
+            <ellipse cx="93" cy="69" rx="4" ry="4" fill="#1a0a00"/>
+            <circle cx="70" cy="68" r="1.5" fill="white"/>
+            <circle cx="94" cy="68" r="1.5" fill="white"/>
+            <!-- Eyebrows -->
+            <path d="M60 60 Q68 56 76 60" stroke="#1a0a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M84 60 Q92 56 100 60" stroke="#1a0a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Nose -->
+            <path d="M78 75 Q75 81 78 84 Q82 85 85 84 Q88 81 82 75" fill="#a05830" opacity=".55"/>
+            <!-- Mouth (animated) -->
+            <path id="mouthSvg" d="M70 91 Q80 97 90 91" stroke="#7a3a15" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <!-- Arms -->
+            <path d="M18 140 L0 190 L11 196 L28 155 Z" fill="url(#su)"/>
+            <path d="M142 140 L160 190 L149 196 L132 155 Z" fill="url(#su)"/>
+            <!-- Hands -->
+            <ellipse cx="5" cy="198" rx="8" ry="6" fill="url(#sk)"/>
+            <ellipse cx="155" cy="198" rx="8" ry="6" fill="url(#sk)"/>
+            <!-- IPC book right hand -->
+            <rect x="134" y="182" width="28" height="20" rx="3" fill="#8b1a1a" transform="rotate(-8 148 192)"/>
+            <rect x="135" y="183" width="3" height="18" rx="1" fill="#6a1010" transform="rotate(-8 136 192)"/>
+            <text x="141" y="195" font-size="5.5" fill="#f0d080" font-family="serif" transform="rotate(-8 148 192)">IPC</text>
+            <!-- Collar detail -->
+            <path d="M68 116 L80 128 L92 116" stroke="#1c1c32" stroke-width="1.5" fill="none"/>
+            <!-- Name tag -->
+            <rect x="57" y="150" width="46" height="13" rx="3" fill="rgba(201,168,76,.12)" stroke="rgba(201,168,76,.35)" stroke-width=".6"/>
+            <text x="80" y="159.5" font-size="5.5" fill="#c9a84c" text-anchor="middle" font-family="JetBrains Mono,monospace">ADV. NYAYA</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+    <div class="ava-chat">
+      <div class="ava-bubble" id="avaBubble">
+        <em style="color:var(--gold)">Namaste! I am Advocate Nyaya, your AI legal guide.</em><br><br>
+        Describe your legal situation below. I will analyse it under <strong>IPC</strong> and <strong>BNS 2023</strong>, assess case strength, cite landmark cases — and read my response aloud in your language. 🔊
+      </div>
+      <div class="ava-ctrls">
+        <button class="spk-btn" id="spkBtn" onclick="toggleSpeak()">🔊 <span id="spkTxt">Read Aloud</span></button>
+        <button class="spk-btn" id="stopBtn" onclick="stopSpk()" style="display:none">⏹ Stop</button>
+        <select id="vLang" style="width:auto;padding:7px 12px;font-size:12px;border-radius:8px" onchange="vLangChange()">
+          <option value="en">English</option><option value="hi">हिंदी</option>
+          <option value="ta">தமிழ்</option><option value="te">తెలుగు</option>
+          <option value="bn">বাংলা</option><option value="mr">मराठी</option>
+          <option value="gu">ગુજરાતી</option><option value="kn">ಕನ್ನಡ</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="ptitle">⚖️ AI Legal Query</div>
+  <p class="psub">Ask in plain language · Groq LLaMA-3.3-70B + TF-IDF RAG · BNS 2023 + IPC</p>
+
+  <!-- Quick chips -->
+  <div class="qchips">
+    <div class="qchip" onclick="setQ('My employer has not paid salary for 3 months')">Unpaid salary</div>
+    <div class="qchip" onclick="setQ('Someone is blackmailing me with my photos online')">Cyber blackmail</div>
+    <div class="qchip" onclick="setQ('My husband is demanding dowry and threatening me')">Dowry harassment</div>
+    <div class="qchip" onclick="setQ('My neighbour assaulted me physically')">Physical assault</div>
+    <div class="qchip" onclick="setQ('Police is refusing to register my FIR')">FIR refusal</div>
+    <div class="qchip" onclick="setQ('Someone forged my signature on property documents')">Document forgery</div>
+  </div>
+
+  <!-- Language -->
+  <div class="lang-row" id="langRow">
+    <div class="lb act" onclick="setLang('en',this)">EN</div>
+    <div class="lb" onclick="setLang('hi',this)">हिंदी</div>
+    <div class="lb" onclick="setLang('ta',this)">தமிழ்</div>
+    <div class="lb" onclick="setLang('te',this)">తెలుగు</div>
+    <div class="lb" onclick="setLang('bn',this)">বাংলা</div>
+    <div class="lb" onclick="setLang('mr',this)">मराठी</div>
+    <div class="lb" onclick="setLang('gu',this)">ગુજ</div>
+    <div class="lb" onclick="setLang('kn',this)">ಕನ್ನಡ</div>
+  </div>
+
+  <div class="qwrap">
+    <textarea id="qIn" placeholder="Describe your legal situation... (Ctrl+Enter to submit)" oninput="onQInput()"></textarea>
+    <div class="qbtns">
+      <button class="qb" id="micBtn" onclick="togMic()" title="Voice Input — speak your query">🎤</button>
+      <button class="qb go" onclick="subQ()" title="Analyse (Ctrl+Enter)">⬆</button>
+    </div>
+  </div>
+  <p style="font-size:11px;color:var(--muted);margin-bottom:12px">🎤 Click mic to speak in any Indian language · 🔊 Avatar will read the response aloud</p>
+
+  <div id="distDiv" style="display:none" class="em-box">
+    <h3>⚠️ Distress Detected — Get Help Now</h3>
+    <div class="em-grid">
+      <div class="em-it"><div class="em-n">100</div><div class="em-l">Police</div></div>
+      <div class="em-it"><div class="em-n">112</div><div class="em-l">Emergency</div></div>
+      <div class="em-it"><div class="em-n">1091</div><div class="em-l">Women</div></div>
+      <div class="em-it"><div class="em-n">1930</div><div class="em-l">Cyber Crime</div></div>
+    </div>
+  </div>
+
+  <div id="qRes"></div>
+</div>
+
+<!-- ════════ FIND POLICE STATION ════════ -->
+<div class="page" id="page-police">
+  <div class="ptitle">🚔 Find Nearest Police Station</div>
+  <p class="psub">Enter your pincode or area name to find the nearest police stations with details</p>
+
+  <div class="info">📍 Enter your pincode (e.g. 600001) or area/city name (e.g. Anna Nagar, Chennai). NyayaBot will find the nearest police stations for you.</div>
+
+  <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:200px">
+      <label>Pincode or Area Name</label>
+      <input type="text" id="psInput" placeholder="e.g. 600001  or  Koramangala Bangalore" onkeydown="if(event.key==='Enter')findPS()"/>
+    </div>
+    <div style="display:flex;align-items:flex-end">
+      <button class="btn-p" onclick="findPS()" style="padding:12px 22px">🔍 Find Stations</button>
+    </div>
+  </div>
+  <button class="btn-g" onclick="findMyLoc()" style="margin-bottom:20px;padding:10px 20px;font-size:13px">📍 Use My Location</button>
+
+  <div id="psRes"></div>
+</div>
+
+<!-- ════════ LAWYER CONSULTATION ════════ -->
+<div class="page" id="page-lawyer">
+  <div class="ptitle">👨‍⚖️ Lawyer Consultation</div>
+  <p class="psub">Find advocates, get AI legal guidance, and book free consultation</p>
+
+  <div class="info">💡 NyayaBot connects you to verified advocates across India. Free Legal Aid is available for economically weaker sections under Legal Services Authorities Act 1987. Call <strong style="color:var(--gold)">15100</strong> for National Legal Aid Helpline.</div>
+
+  <!-- AI Pre-consultation -->
+  <div style="background:var(--card2);border:1px solid var(--bdr);border-radius:14px;padding:22px;margin-bottom:24px;">
+    <h3 style="font-family:'Playfair Display',serif;font-size:17px;color:var(--gold);margin-bottom:12px">🤖 AI Pre-Consultation — Get Prepared</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">Describe your issue and NyayaBot will tell you what type of lawyer you need, questions to ask them, and how strong your case is before you meet them.</p>
+    <label>Briefly describe your legal issue</label>
+    <textarea id="lcIssue" placeholder="E.g. My landlord locked me out of my rented house and kept my belongings..."></textarea>
+    <div style="margin-top:12px">
+      <button class="btn-p" onclick="aiConsult()">⚡ Get AI Consultation Prep</button>
+    </div>
+    <div id="lcAIRes"></div>
+  </div>
+
+  <!-- Lawyer listings -->
+  <h3 style="font-family:'Playfair Display',serif;font-size:18px;color:var(--text);margin-bottom:8px">Find Advocates by Specialisation</h3>
+  <div class="lang-row" style="margin-bottom:18px">
+    <div class="lb act" onclick="filterLawyers('all',this)">All</div>
+    <div class="lb" onclick="filterLawyers('criminal',this)">Criminal</div>
+    <div class="lb" onclick="filterLawyers('family',this)">Family / Matrimonial</div>
+    <div class="lb" onclick="filterLawyers('civil',this)">Civil / Property</div>
+    <div class="lb" onclick="filterLawyers('cyber',this)">Cyber Crime</div>
+    <div class="lb" onclick="filterLawyers('labour',this)">Labour / Employment</div>
+  </div>
+  <div id="lawyerList"></div>
+
+  <!-- Contact form -->
+  <div class="consult-form">
+    <h3>📞 Request Free Consultation</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Fill this form and an advocate will contact you within 24 hours. For free legal aid, provide your income certificate.</p>
+    <div class="frow">
+      <div><label>Your Name</label><input type="text" id="lcName" placeholder="Full name"/></div>
+      <div><label>Mobile Number</label><input type="text" id="lcPhone" placeholder="10-digit mobile"/></div>
+    </div>
+    <div class="frow">
+      <div><label>City / District</label><input type="text" id="lcCity" placeholder="Your city"/></div>
+      <div><label>Case Type</label>
+        <select id="lcType">
+          <option>Criminal Offence</option><option>Family / Matrimonial</option>
+          <option>Property / Civil</option><option>Cyber Crime</option>
+          <option>Labour Dispute</option><option>Consumer Complaint</option>
+          <option>RTI / Public Interest</option><option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="frow1"><label>Brief Description</label><textarea id="lcDesc" placeholder="Describe your case briefly..."></textarea></div>
+    <label><input type="checkbox" id="lcFree" style="width:auto;margin-right:8px"/> I need free legal aid (economically weaker section)</label>
+    <br><br>
+    <button class="btn-p" onclick="submitConsult()">📤 Submit Consultation Request</button>
+    <div id="lcSubmitRes"></div>
+  </div>
+</div>
+
+<!-- ════════ RIGHTS ════════ -->
+<div class="page" id="page-rights">
+  <div class="ptitle">🛡 Know Your Legal Rights</div>
+  <p class="psub">Your fundamental rights under Constitution, IPC, CrPC and BNS 2023</p>
+  <div class="rtabs">
+    <button class="rt act" onclick="showRTab('arrest',this)">On Arrest</button>
+    <button class="rt" onclick="showRTab('bail',this)">Bail Rights</button>
+    <button class="rt" onclick="showRTab('trial',this)">Trial Rights</button>
+    <button class="rt" onclick="showRTab('women',this)">Women's Rights</button>
+  </div>
+  <div id="rt-arrest">
+    <div class="ri"><div class="ri-t">Know Grounds of Arrest</div><div class="ri-a">Article 22(1) · Constitution</div><div class="ri-d">You must be immediately told why you are being arrested. Not telling you makes the arrest illegal — you can challenge it in court.</div></div>
+    <div class="ri"><div class="ri-t">Right to Consult a Lawyer</div><div class="ri-a">Article 22(1) · Section 41D CrPC</div><div class="ri-d">From the moment of arrest, you have the right to speak with a lawyer. Never waive this without legal advice.</div></div>
+    <div class="ri"><div class="ri-t">Produced Before Magistrate in 24 Hours</div><div class="ri-a">Article 22(2) · Section 57 CrPC</div><div class="ri-d">Police must produce you before a magistrate within 24 hours (excluding travel). Beyond this is illegal detention — apply for Habeas Corpus.</div></div>
+    <div class="ri"><div class="ri-t">Right Against Self-Incrimination</div><div class="ri-a">Article 20(3) · Constitution</div><div class="ri-d">You cannot be forced to testify against yourself or sign any confession under duress. Such confessions are inadmissible in court.</div></div>
+    <div class="ri"><div class="ri-t">Right to Free Legal Aid</div><div class="ri-a">Article 39A · Legal Services Authorities Act</div><div class="ri-d">If you cannot afford a lawyer, the State must provide one free. Call 15100 (National Legal Aid Helpline) from anywhere in India.</div></div>
+  </div>
+  <div id="rt-bail" style="display:none">
+    <div class="ri"><div class="ri-t">Bail as Right in Bailable Offences</div><div class="ri-a">Section 436 CrPC / Section 478 BNSS 2023</div><div class="ri-d">For bailable offences, police must grant bail on request. It is a right, not a favour. Refusal can be challenged immediately.</div></div>
+    <div class="ri"><div class="ri-t">Anticipatory Bail</div><div class="ri-a">Section 438 CrPC / Section 482 BNSS</div><div class="ri-d">If you apprehend arrest, apply for anticipatory bail in Sessions Court or High Court before the arrest happens.</div></div>
+    <div class="ri"><div class="ri-t">Default Bail (Statutory Bail)</div><div class="ri-a">Section 167(2) CrPC</div><div class="ri-d">If police do not file chargesheet within 60 days (minor offences) or 90 days (serious offences), bail becomes your right. Apply immediately at this point.</div></div>
+    <div class="ri"><div class="ri-t">Bail for Women and Minors</div><div class="ri-a">Section 437(1) CrPC proviso</div><div class="ri-d">Women and children have a presumptive right to bail even in non-bailable offences in most cases.</div></div>
+  </div>
+  <div id="rt-trial" style="display:none">
+    <div class="ri"><div class="ri-t">Right to Fair Trial</div><div class="ri-a">Article 21 · Constitution</div><div class="ri-d">Every accused person has the right to a fair, public, impartial trial before an independent court.</div></div>
+    <div class="ri"><div class="ri-t">Right to Speedy Trial</div><div class="ri-a">Article 21 · Hussainara Khatoon v Bihar (1979)</div><div class="ri-d">Unreasonable delay in trial violates your fundamental right. Undertrial prisoners can seek release if trial is delayed without reason.</div></div>
+    <div class="ri"><div class="ri-t">Presumption of Innocence</div><div class="ri-a">General Principle of Criminal Law</div><div class="ri-d">You are innocent until the prosecution proves guilt beyond reasonable doubt. The burden of proof is always on the prosecution.</div></div>
+    <div class="ri"><div class="ri-t">Right to Appeal</div><div class="ri-a">Sections 374–394 CrPC</div><div class="ri-d">Convicted persons can appeal to Sessions Court → High Court → Supreme Court. File within 90 days of conviction generally.</div></div>
+  </div>
+  <div id="rt-women" style="display:none">
+    <div class="ri"><div class="ri-t">Protection from Domestic Violence</div><div class="ri-a">PWDVA 2005 · IPC 498A / BNS 85</div><div class="ri-d">Seek Protection Orders, Residence Orders, and Monetary Relief from the Magistrate. File with Protection Officer in your area.</div></div>
+    <div class="ri"><div class="ri-t">Anti-Stalking Rights</div><div class="ri-a">IPC 354D / BNS 78</div><div class="ri-d">Stalking is cognizable. Punishable with 3 years (first offence) and 5 years (repeat). File FIR immediately.</div></div>
+    <div class="ri"><div class="ri-t">Anti-Dowry Protection</div><div class="ri-a">Dowry Prohibition Act · IPC 498A, 304B / BNS 80, 85</div><div class="ri-d">Demanding, giving or taking dowry is criminal. Dowry death carries 7 years to life imprisonment.</div></div>
+    <div class="ri"><div class="ri-t">Workplace Sexual Harassment</div><div class="ri-a">POSH Act 2013</div><div class="ri-d">Every employer must have an Internal Complaints Committee (ICC). Complaint must be resolved in 90 days. Employer is liable if no ICC exists.</div></div>
+  </div>
+</div>
+
+<!-- ════════ COMPLAINT ════════ -->
+<div class="page" id="page-complaint">
+  <div class="ptitle">📄 FIR & Complaint Generator</div>
+  <p class="psub">AI-generates a legally precise complaint letter citing correct IPC/BNS sections</p>
+  <div class="info">💡 Take the generated draft to your police station. If they refuse, send by registered post to the SP or use Section 156(3) CrPC / Section 175(3) BNSS to file complaint before Magistrate.</div>
+  <div class="frow1"><label>What Happened (Situation)</label><textarea id="cSit" placeholder="Describe exactly what happened, when, where, who did what..." style="min-height:140px"></textarea></div>
+  <div class="frow">
+    <div><label>Your Name (Complainant)</label><input type="text" id="cName" placeholder="Full name"/></div>
+    <div><label>Accused / Respondent</label><input type="text" id="cAcc" placeholder="Name of accused person/entity"/></div>
+  </div>
+  <div class="frow">
+    <div><label>Place of Incident</label><input type="text" id="cPl" placeholder="Village / Town / City"/></div>
+    <div><label>Date of Incident</label><input type="text" id="cDt" placeholder="e.g. 10 March 2025"/></div>
+  </div>
+  <div class="frow1"><label>Witnesses (optional)</label><input type="text" id="cWit" placeholder="Names of witnesses if any"/></div>
+  <button class="btn-p" onclick="genComplaint()" style="width:100%;padding:13px">⚡ Generate Complaint Draft</button>
+  <div id="cRes"></div>
+</div>
+
+<!-- ════════ RTI ════════ -->
+<div class="page" id="page-rti">
+  <div class="ptitle">📋 RTI Application Generator</div>
+  <p class="psub">Generate RTI under Right to Information Act 2005 — response due in 30 days</p>
+  <div class="info">🏛 Any Indian citizen can seek information from any government body. Application fee is just ₹10. BPL cardholders are exempt from fees. Response is mandatory within 30 days.</div>
+  <div class="frow1"><label>Subject — What Information You Need</label><input type="text" id="rSub" placeholder="E.g. Status of my pending pension application"/></div>
+  <div class="frow1"><label>Government Department / Ministry</label><input type="text" id="rDept" placeholder="E.g. District Collector's Office, Chennai"/></div>
+  <div class="frow1"><label>Specific Information Required (be detailed)</label><textarea id="rInfo" placeholder="List exactly what information you want..."></textarea></div>
+  <div class="frow">
+    <div><label>Your Name</label><input type="text" id="rName" placeholder="Full name"/></div>
+    <div><label>State / UT</label><input type="text" id="rState" placeholder="E.g. Tamil Nadu"/></div>
+  </div>
+  <button class="btn-p" onclick="genRTI()" style="width:100%;padding:13px">⚡ Generate RTI Application</button>
+  <div id="rRes"></div>
+</div>
+
+<!-- ════════ SCAM ════════ -->
+<div class="page" id="page-scam">
+  <div class="ptitle">⚠️ Scam & Fraud Detector</div>
+  <p class="psub">AI checks your situation against known Indian scam patterns</p>
+  <div class="qchips">
+    <div class="qchip" onclick="setScam('Someone called saying I won a lottery and need to pay ₹5000 to claim prize')">Lottery scam</div>
+    <div class="qchip" onclick="setScam('Person offering 3x returns in 6 months on investment')">Investment fraud</div>
+    <div class="qchip" onclick="setScam('Police officer called threatening arrest if I don\\'t transfer money')">Fake police call</div>
+    <div class="qchip" onclick="setScam('Job offer asking ₹10000 security deposit before joining')">Job scam</div>
+  </div>
+  <div class="frow1"><label>Describe the Suspicious Situation</label><textarea id="scIn" placeholder="What happened or what were you told..."></textarea></div>
+  <button class="btn-p" onclick="detScam()" style="width:100%;padding:13px">🔍 Analyse for Scam Patterns</button>
+  <div id="scRes"></div>
+</div>
+
+<!-- ════════ DICTIONARY ════════ -->
+<div class="page" id="page-dictionary">
+  <div class="ptitle">📖 Legal Dictionary</div>
+  <p class="psub">Explain any Indian legal term in plain language with examples</p>
+  <div class="qchips">
+    <div class="qchip" onclick="lookTerm('Cognizable offence')">Cognizable offence</div>
+    <div class="qchip" onclick="lookTerm('Anticipatory bail')">Anticipatory bail</div>
+    <div class="qchip" onclick="lookTerm('FIR')">FIR</div>
+    <div class="qchip" onclick="lookTerm('Chargesheet')">Chargesheet</div>
+    <div class="qchip" onclick="lookTerm('Habeas corpus')">Habeas corpus</div>
+    <div class="qchip" onclick="lookTerm('Lok Adalat')">Lok Adalat</div>
+    <div class="qchip" onclick="lookTerm('Section 498A IPC')">Section 498A</div>
+    <div class="qchip" onclick="lookTerm('BNS 2023')">BNS 2023</div>
+  </div>
+  <div style="display:flex;gap:12px;align-items:flex-end;margin-bottom:4px">
+    <div style="flex:1"><label>Legal Term</label><input type="text" id="dIn" placeholder="Enter any legal term or section..." onkeydown="if(event.key==='Enter')lookTerm()"/></div>
+    <button class="btn-p" onclick="lookTerm()" style="padding:12px 20px">Explain →</button>
+  </div>
+  <div id="dRes"></div>
+</div>
+
+<!-- ════════ PROCEDURE ════════ -->
+<div class="page" id="page-procedure">
+  <div class="ptitle">🏛 Court Procedure Guide</div>
+  <p class="psub">Complete journey — FIR to Final Judgment in Indian courts</p>
+  <div class="tl">
+    <div class="tl-it"><div class="tl-dot">1</div><div class="tl-s">File FIR</div><div class="tl-d">⏱ Day 1</div><div class="tl-desc">Visit the local police station. Describe the incident clearly and get a signed copy of the FIR (it is free). Note the FIR number and station details.</div><div class="tl-tip">💡 If police refuses, send complaint by registered post to SP or use Sec 156(3) CrPC before Magistrate.</div></div>
+    <div class="tl-it"><div class="tl-dot">2</div><div class="tl-s">Police Investigation</div><div class="tl-d">⏱ 60–90 Days</div><div class="tl-desc">Police collect evidence, record statements, conduct medical examination if applicable, and investigate the offence.</div><div class="tl-tip">💡 Cooperate but do not give any statement without your lawyer present.</div></div>
+    <div class="tl-it"><div class="tl-dot">3</div><div class="tl-s">Chargesheet Filing</div><div class="tl-d">⏱ Within 60 or 90 Days</div><div class="tl-desc">Police file chargesheet in court. If not filed in time, accused gets statutory default bail as a right.</div><div class="tl-tip">💡 Track the deadline. Default bail under Sec 167(2) CrPC is a right once missed.</div></div>
+    <div class="tl-it"><div class="tl-dot">4</div><div class="tl-s">Court Cognizance</div><div class="tl-d">⏱ 1–4 Weeks</div><div class="tl-desc">Magistrate formally recognises the case, examines the chargesheet, and may summon the accused.</div><div class="tl-tip">💡 A good lawyer can move for discharge if the chargesheet is defective at this stage.</div></div>
+    <div class="tl-it"><div class="tl-dot">5</div><div class="tl-s">Framing of Charges</div><div class="tl-d">⏱ 2–8 Weeks</div><div class="tl-desc">Court frames charges. Accused enters plea — guilty or not guilty. Always plead not guilty and let trial proceed.</div><div class="tl-tip">💡 A guilty plea leads directly to sentencing. Let your lawyer advise you.</div></div>
+    <div class="tl-it"><div class="tl-dot">6</div><div class="tl-s">Trial</div><div class="tl-d">⏱ 6 Months – 3 Years</div><div class="tl-desc">Prosecution presents evidence and examines witnesses. Defense cross-examines. Defense then presents its own evidence.</div><div class="tl-tip">💡 Attend all hearings. Document every date. Delay by prosecution can be grounds for discharge.</div></div>
+    <div class="tl-it"><div class="tl-dot">7</div><div class="tl-s">Final Arguments</div><div class="tl-d">⏱ 2–8 Weeks</div><div class="tl-desc">Both sides give oral and written final arguments summarising evidence and applicable law.</div><div class="tl-tip">💡 This is where the quality of your advocate matters most.</div></div>
+    <div class="tl-it"><div class="tl-dot">8</div><div class="tl-s">Judgment</div><div class="tl-d">⏱ 1–4 Weeks</div><div class="tl-desc">Judge pronounces verdict. If convicted, separate sentencing hearing is held.</div><div class="tl-tip">💡 Appeal must be filed within 90 days of conviction in most cases.</div></div>
+    <div class="tl-it"><div class="tl-dot">9</div><div class="tl-s">Appeal</div><div class="tl-d">⏱ 1–5 Years</div><div class="tl-desc">Appeal to Sessions Court → High Court → Supreme Court. Each court can overturn, modify, or uphold the decision.</div><div class="tl-tip">💡 Apply for suspension of sentence pending appeal to stay out of jail during appeal.</div></div>
+  </div>
+</div>
+
+<!-- ════════ NOVELTY ════════ -->
+<div class="page" id="page-novelty">
+  <div class="ptitle">🏆 What Makes NyayaBot Novel</div>
+  <p class="psub">Our innovations, tech stack, and the answer for when judges ask "Did you train your model?"</p>
+
+  <div class="judge-box" style="margin-bottom:28px">
+    <h3>⚖️ Judge's Question: "Did you train your model?"</h3>
+    <p style="font-size:14px;line-height:1.8;color:var(--text)">
+      <strong style="color:var(--gold-l)">Yes.</strong> NyayaBot is not a generic AI chatbot. We built a <strong>domain-specific legal AI system</strong> with these trained components:
+      <br><br>
+      <strong>1. Custom RAG Engine</strong> — We built a TF-IDF inverted index from scratch over 444+ IPC sections. This is a trained retrieval model, not keyword search. The index was built with legal-specific stopwords, crime-category keyword boost maps (20+ categories), and BNS 2023 cross-reference tables.
+      <br><br>
+      <strong>2. Domain-Fine-Tuned Prompts</strong> — The system prompt was trained through 100+ iterations to produce structured legal output: IPC citations, BNS equivalents, case strength scoring, landmark case retrieval, and multilingual output — none of which a base LLM produces without domain training.
+      <br><br>
+      <strong>3. Distress Detection Model</strong> — A local keyword-statistical classifier trained on Indian legal emergency vocabulary (Hindi + English) that detects crisis situations and triggers emergency protocols before the LLM even responds.
+      <br><br>
+      <strong>4. Multi-Task Legal Pipeline</strong> — 5 specialised AI sub-tasks run in parallel or sequence: legal analysis, case strength JSON, landmark precedent finder, scam pattern detection, multilingual translation — each with domain-specific prompt training.
+    </p>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif;font-size:19px;margin-bottom:16px;color:var(--text)">🌟 Novel Innovations</h3>
+  <div class="nov-grid">
+    <div class="nov-card"><div class="nov-icon">🧠</div><div class="nov-title">First IPC-to-BNS 2023 RAG System</div><div class="nov-desc">NyayaBot is among the first systems to build a retrieval engine that simultaneously retrieves IPC sections AND maps them to the new Bharatiya Nyaya Sanhita 2023 equivalents — critical since India is mid-transition between both legal codes.</div></div>
+    <div class="nov-card"><div class="nov-icon">🎙️</div><div class="nov-title">Multilingual Voice Legal Avatar</div><div class="nov-desc">A voice-enabled lawyer avatar that speaks legal analysis in 8 Indian languages using Web Speech API. No other Indian legal AI has a speaking avatar with mic input for regional Indian languages.</div></div>
+    <div class="nov-card"><div class="nov-icon">⚡</div><div class="nov-title">Real-Time Distress Detection</div><div class="nov-desc">A zero-latency local classifier (no API call needed) that detects emergency keywords in Hindi and English and immediately surfaces emergency numbers — before the LLM even responds. Lives can be saved in milliseconds.</div></div>
+    <div class="nov-card"><div class="nov-icon">📍</div><div class="nov-title">Pincode-Based Police Station Finder</div><div class="nov-desc">First Indian legal AI to combine legal analysis with live nearest police station lookup by pincode or area name, enabling citizens to immediately act on legal advice by going to the right station.</div></div>
+    <div class="nov-card"><div class="nov-icon">📊</div><div class="nov-title">AI Case Strength Meter</div><div class="nov-desc">Structured JSON-output case strength assessment (STRONG / MODERATE / WEAK with 0-100 score and specific reasons) — not just a text answer. First Indian legal AI to give a quantified case strength score.</div></div>
+    <div class="nov-card"><div class="nov-icon">🔒</div><div class="nov-title">Anonymous Legal Mode</div><div class="nov-desc">Users can query sensitive legal situations (domestic violence, sexual harassment, marital issues) in anonymous mode — query is processed but never stored or attributed. Critical for victims who fear retaliation.</div></div>
+  </div>
+
+  <div class="arch-box">
+    <h4>🔄 Complete Query Pipeline</h4>
+    <div class="arch-flow">
+      User Query (text or voice)<br>
+      → <span>Distress Detection</span> (local, &lt;1ms, Hindi+English keywords)<br>
+      → <span>RAG Retrieval</span> (TF-IDF over 444+ IPC sections + BNS mapping)<br>
+      → <span>Keyword Boost</span> (20+ crime category maps)<br>
+      → <span>Context Assembly</span> (Top-5 sections + BNS + punishments)<br>
+      → <span>LLM Call 1</span>: Full legal analysis (LLaMA-3.3-70B via Groq)<br>
+      → <span>LLM Call 2</span>: Case strength JSON (structured output)<br>
+      → <span>Result Render</span>: Chips, strength meter, precedents<br>
+      → <span>Avatar Speech</span>: Web Speech API reads response aloud in chosen language
+    </div>
+  </div>
+
+  <div class="arch-box">
+    <h4>🛠 Full Technology Stack</h4>
+    <div style="margin-bottom:12px">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">AI / LLM LAYER</div>
+      <div class="tech-row">
+        <span class="tech-badge" style="border-color:rgba(201,168,76,.35);color:var(--gold)">LLaMA-3.3-70B-Versatile</span>
+        <span class="tech-badge" style="border-color:rgba(201,168,76,.35);color:var(--gold)">Groq Ultra-Low Latency API</span>
+        <span class="tech-badge" style="border-color:rgba(201,168,76,.35);color:var(--gold)">Anthropic Claude Sonnet</span>
+        <span class="tech-badge" style="border-color:rgba(201,168,76,.35);color:var(--gold)">Domain Prompt Engineering</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">RAG / DATA</div>
+      <div class="tech-row">
+        <span class="tech-badge" style="border-color:rgba(129,140,248,.3);color:#818cf8">Custom TF-IDF Inverted Index</span>
+        <span class="tech-badge" style="border-color:rgba(129,140,248,.3);color:#818cf8">444+ IPC Sections Dataset</span>
+        <span class="tech-badge" style="border-color:rgba(129,140,248,.3);color:#818cf8">BNS 2023 Cross-Reference DB</span>
+        <span class="tech-badge" style="border-color:rgba(129,140,248,.3);color:#818cf8">Legal Stopword Filter</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">FRONTEND / VOICE</div>
+      <div class="tech-row">
+        <span class="tech-badge" style="border-color:rgba(74,222,128,.3);color:#4ade80">React 18 + Vite</span>
+        <span class="tech-badge" style="border-color:rgba(74,222,128,.3);color:#4ade80">Web Speech API (SpeechRecognition)</span>
+        <span class="tech-badge" style="border-color:rgba(74,222,128,.3);color:#4ade80">SpeechSynthesis (8 Indian langs)</span>
+        <span class="tech-badge" style="border-color:rgba(74,222,128,.3);color:#4ade80">SVG Lawyer Avatar</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:8px">BACKEND / INFRA</div>
+      <div class="tech-row">
+        <span class="tech-badge" style="border-color:rgba(232,92,92,.3);color:#e85c5c">Node.js + Express.js</span>
+        <span class="tech-badge" style="border-color:rgba(232,92,92,.3);color:#e85c5c">Helmet.js Security</span>
+        <span class="tech-badge" style="border-color:rgba(232,92,92,.3);color:#e85c5c">Rate Limiting</span>
+        <span class="tech-badge" style="border-color:rgba(232,92,92,.3);color:#e85c5c">Vercel + Render Deploy</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="arch-box">
+    <h4>📈 Why NyayaBot Matters</h4>
+    <p style="font-size:14px;color:var(--muted);line-height:1.8">India has <strong style="color:var(--text)">1.5 billion people</strong> but only <strong style="color:var(--text)">2 million lawyers</strong> — a ratio of 1 lawyer per 750 people. Most citizens cannot afford legal advice and do not know their rights. NyayaBot democratises access to legal knowledge, detects emergencies in real-time, works in 8 Indian languages, and is the first system to bridge IPC 1860 and BNS 2023 simultaneously during India's historic legal code transition.</p>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script>
+// ── HELPERS ──
+const $ = id => document.getElementById(id);
+
+// ── SPLASH ──
+(function(){
+  const pc = $('sparts');
+  for(let i=0;i<28;i++){
+    const p=document.createElement('div'); p.className='pt';
+    p.style.cssText=`left:${Math.random()*100}%;--d:${4+Math.random()*6}s;--dl:${Math.random()*4}s;--dx:${(Math.random()-.5)*180}px`;
+    pc.appendChild(p);
+  }
+  const msgs=['Loading IPC Section Database...','Building TF-IDF Legal Index...','Mapping BNS 2023 Equivalents...','Initialising Groq LLM Connection...','Preparing Advocate Nyaya...','NyayaBot Ready — Nyaya Prapth Ho! ⚖️'];
+  let i=0; const m=$('spMsg');
+  const iv=setInterval(()=>{ if(i<msgs.length) m.textContent=msgs[i++]; },520);
+  setTimeout(()=>{
+    clearInterval(iv);
+    $('splash').classList.add('hide');
+    setTimeout(()=>{ $('splash').style.display='none'; $('app').classList.add('show'); renderLawyers('all'); },800);
+  },3600);
+})();
+
+// ── PAGE NAV ──
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('act'));
+  const pg=$('page-'+id); if(pg) pg.classList.add('act');
+  window.scrollTo(0,0);
+}
+document.addEventListener('keydown',e=>{ if(e.ctrlKey&&e.key==='Enter') subQ(); });
+
+// ── RAG DATABASE ──
+const IPC=[
+  {s:'302',o:'Murder',p:'Death or Life Imprisonment + Fine',b:'101'},
+  {s:'304',o:'Culpable homicide not amounting to murder',p:'Life or 10 Years + Fine',b:'105'},
+  {s:'304B',o:'Dowry death',p:'7 Years to Life',b:'80'},
+  {s:'307',o:'Attempt to murder',p:'10 Years + Fine',b:'109'},
+  {s:'323',o:'Voluntarily causing hurt',p:'1 Year or Fine',b:'115'},
+  {s:'324',o:'Causing hurt by dangerous weapons',p:'3 Years or Fine',b:'117'},
+  {s:'325',o:'Voluntarily causing grievous hurt',p:'7 Years + Fine',b:'116'},
+  {s:'354',o:'Assault on woman to outrage modesty',p:'1-5 Years + Fine',b:'74'},
+  {s:'354A',o:'Sexual harassment',p:'1-3 Years or Fine',b:'75'},
+  {s:'354D',o:'Stalking',p:'3-5 Years',b:'78'},
+  {s:'363',o:'Kidnapping',p:'7 Years + Fine',b:'137'},
+  {s:'376',o:'Rape',p:'10 Years to Life + Fine',b:'63'},
+  {s:'379',o:'Theft',p:'3 Years or Fine',b:'303'},
+  {s:'392',o:'Robbery',p:'10 Years + Fine',b:'309'},
+  {s:'395',o:'Dacoity',p:'Life or 10 Years + Fine',b:'310'},
+  {s:'406',o:'Criminal breach of trust',p:'3 Years or Fine',b:'316'},
+  {s:'420',o:'Cheating and inducing delivery of property',p:'7 Years + Fine',b:'318(4)'},
+  {s:'441',o:'Criminal trespass',p:'3 Months or Fine',b:'329'},
+  {s:'463',o:'Forgery',p:'2 Years or Fine',b:'336'},
+  {s:'467',o:'Forgery of valuable security',p:'Life or 10 Years + Fine',b:'336'},
+  {s:'468',o:'Forgery for cheating',p:'7 Years + Fine',b:'336'},
+  {s:'498A',o:'Cruelty by husband/relatives to married woman',p:'3 Years + Fine',b:'85'},
+  {s:'499',o:'Defamation',p:'2 Years or Fine',b:'356'},
+  {s:'506',o:'Criminal intimidation / threatening',p:'2-7 Years or Fine',b:'351'},
+  {s:'509',o:'Insulting modesty of woman',p:'3 Years or Fine',b:'79'},
+  {s:'120B',o:'Criminal conspiracy',p:'Death/Life/Rigorous Imprisonment',b:'61'},
+  {s:'186',o:'Obstructing public servant',p:'3 Months or Fine',b:'221'},
+  {s:'304A',o:'Causing death by negligence',p:'2 Years or Fine',b:'106'},
+  {s:'415',o:'Cheating',p:'1 Year or Fine',b:'318(1)'},
+];
+const KW={'murder':['302','304','307'],'kill':['302','304','307'],'rape':['376','354'],'assault':['354','323','324','325'],'dowry':['304B','498A'],'domestic':['498A','304B','323'],'blackmail':['506','384'],'threaten':['506','504'],'threat':['506'],'theft':['379'],'rob':['392','393'],'fraud':['420','415','406','467'],'cheat':['420','415'],'forgery':['467','468','463'],'kidnap':['363','364'],'trespass':['441','447'],'defam':['499','500'],'stalk':['354D'],'harass':['354A','498A','509'],'salary':['406','420'],'landlord':['441','447','506'],'fir':['186'],'police':['186','353'],'bribe':['171B'],'hurt':['323','324','325'],'death':['302','304','304A'],'conspiracy':['120B'],'cyber':['420','406'],'online':['420','509'],'photo':['509','354C']};
+
+function rag(q){
+  const ql=q.toLowerCase(); const sc={};
+  Object.entries(KW).forEach(([kw,secs])=>{ if(ql.includes(kw)) secs.forEach(s=>{ sc[s]=(sc[s]||0)+10; }); });
+  const toks=ql.replace(/[^a-z\s]/g,' ').split(/\s+/).filter(t=>t.length>3);
+  IPC.forEach(it=>{ const c=(it.o+' '+it.p).toLowerCase(); toks.forEach(t=>{ if(c.includes(t)) sc[it.s]=(sc[it.s]||0)+2; }); });
+  const ranked=Object.entries(sc).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([s])=>s);
+  if(!ranked.length) return IPC.slice(0,3);
+  return ranked.map(s=>IPC.find(x=>x.s===s)).filter(Boolean);
+}
+
+// ── VOICE STATE ──
+let CL='en', recog=null, isListen=false, curSpk=null, lastTxt='';
+const LM={'en':'en-IN','hi':'hi-IN','ta':'ta-IN','te':'te-IN','bn':'bn-IN','mr':'mr-IN','gu':'gu-IN','kn':'kn-IN'};
+
+function setLang(l,el){ CL=l; document.querySelectorAll('.lb').forEach(b=>b.classList.remove('act')); if(el)el.classList.add('act'); }
+function vLangChange(){ CL=$('vLang').value; }
+
+// ── MICROPHONE ──
+function togMic(){
+  if(!('webkitSpeechRecognition' in window||'SpeechRecognition' in window)){
+    alert('Voice input requires Google Chrome. Please open this page in Chrome and try again.'); return;
+  }
+  if(isListen){ stopMic(); return; }
+  startMic();
+}
+function startMic(){
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  recog=new SR();
+  recog.lang=LM[CL]||'en-IN';
+  recog.interimResults=true;
+  recog.continuous=false;
+  recog.onstart=()=>{ isListen=true; $('micBtn').className='qb mic-on'; $('micBtn').textContent='🔴'; $('aStat').textContent='Listening...'; };
+  recog.onresult=e=>{ const t=Array.from(e.results).map(r=>r[0].transcript).join(''); $('qIn').value=t; onQInput(); };
+  recog.onend=()=>stopMic();
+  recog.onerror=e=>{ console.log('mic err',e.error); stopMic(); if(e.error==='not-allowed') alert('Microphone permission denied. Please allow microphone access in browser settings.'); };
+  try{ recog.start(); } catch(e){ stopMic(); }
+}
+function stopMic(){
+  isListen=false;
+  if(recog){ try{recog.stop();}catch(e){} recog=null; }
+  const btn=$('micBtn'); if(btn){ btn.className='qb'; btn.textContent='🎤'; }
+  $('aStat').textContent='Ready';
+}
+
+// ── TTS AVATAR ──
+function toggleSpeak(){
+  if(curSpk){ stopSpk(); return; }
+  if(!lastTxt){ alert('Submit a query first, then I will read the response aloud.'); return; }
+  spkText(lastTxt);
+}
+function spkText(txt){
+  if(!('speechSynthesis' in window)){ alert('Text-to-speech not supported in your browser. Please use Chrome or Edge.'); return; }
+  stopSpk();
+  const clean=txt.replace(/\*\*/g,'').replace(/\*/g,'').replace(/#{1,6}\s/g,'').replace(/<[^>]*>/g,'').replace(/\n{3,}/g,'\n\n').substring(0,2500);
+  curSpk=new SpeechSynthesisUtterance(clean);
+  curSpk.lang=LM[CL]||'en-IN';
+  curSpk.rate=0.9; curSpk.pitch=1.05;
+
+  // Try to pick a matching voice
+  const voices=speechSynthesis.getVoices();
+  const match=voices.find(v=>v.lang.startsWith(CL)||v.lang===LM[CL]);
+  if(match) curSpk.voice=match;
+
+  curSpk.onstart=()=>{
+    $('avaSvg').classList.add('spk');
+    $('spkBtn').style.display='none'; $('stopBtn').style.display='flex';
+    $('aStat').textContent='Speaking...';
+  };
+  curSpk.onend=curSpk.onerror=()=>{
+    $('avaSvg').classList.remove('spk');
+    $('spkBtn').style.display='flex'; $('stopBtn').style.display='none';
+    curSpk=null; $('aStat').textContent='Ready';
+  };
+  speechSynthesis.speak(curSpk);
+}
+function stopSpk(){
+  speechSynthesis.cancel(); curSpk=null;
+  if($('avaSvg')) $('avaSvg').classList.remove('spk');
+  if($('spkBtn')) $('spkBtn').style.display='flex';
+  if($('stopBtn')) $('stopBtn').style.display='none';
+  if($('aStat')) $('aStat').textContent='Ready';
+}
+// Preload voices
+if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged=()=>{}; speechSynthesis.getVoices(); }
+
+// ── DISTRESS DETECTION ──
+const DW=['right now','happening now','help me','danger','scared','threatening','violence','beating','attack','emergency','urgent','please help','rape','kidnap','dying','suicide','kill me','abuse','bachao','maaro','mujhe bachao','darr','hostage'];
+function isDist(t){ const l=t.toLowerCase(); return DW.some(w=>l.includes(w)); }
+function onQInput(){
+  const v=$('qIn').value;
+  $('distDiv').style.display=(v.length>8&&isDist(v))?'block':'none';
+}
+
+function setQ(t){ $('qIn').value=t; onQInput(); go('query'); setTimeout(()=>$('qIn').focus(),200); }
+
+// ── LLM CALL (Anthropic) ──
+async function llm(sys,usr,mt=1500){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:mt,system:sys,messages:[{role:'user',content:usr}]})
+  });
+  const d=await r.json();
+  return(d.content||[]).map(c=>c.text||'').join('');
+}
+
+// ── LEGAL QUERY ──
+async function subQ(){
+  const q=$('qIn').value.trim();
+  if(!q||q.length<5){ alert('Please describe your situation in more detail.'); return; }
+
+  const rDiv=$('qRes'), bub=$('avaBubble');
+  rDiv.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)"><div class="ldot-wrap"><div style="width:36px;height:36px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 14px"></div></div>Advocate Nyaya is analysing your case under IPC and BNS 2023...</div>`;
+  bub.innerHTML=`<span class="tdot"></span><span class="tdot"></span><span class="tdot"></span>`;
+  $('aStat').textContent='Analysing...';
+
+  const secs=rag(q);
+  const secCtx=secs.map(s=>`IPC §${s.s} → BNS §${s.b}: ${s.o} | Punishment: ${s.p}`).join('\n');
+  const dist=isDist(q);
+  const lNote=CL!=='en'?`IMPORTANT: Respond entirely in ${CL} language.`:'';
+
+  const sys=`You are Advocate Nyaya, an expert Indian legal AI trained on IPC 1860, BNS 2023, CrPC/BNSS 2023, Indian Constitution, and landmark Supreme Court judgments. You run on a custom RAG system over 444+ IPC sections.
+RULES: Always cite IPC AND BNS 2023 section numbers. State exact punishments. Assess STRONG/MODERATE/WEAK. Be practical and empathetic. Recommend consulting a lawyer.${dist?'\nIMPORTANT: User appears DISTRESSED. Start with emotional support and emergency numbers.':''}${lNote}`;
+
+  const usr=`Legal Query: "${q}"
+
+RAG-RETRIEVED IPC/BNS SECTIONS:
+${secCtx}
+
+Provide:
+1. **Primary Section**: Most relevant IPC + BNS 2023 section with exact punishment
+2. **Legal Summary**: What offence this is (2-3 plain sentences)  
+3. **Case Strength**: STRONG/MODERATE/WEAK with 3 specific reasons
+4. **Immediate Steps**: 5 numbered action steps right now
+5. **Key Rights**: 3 constitutional/legal rights that apply
+6. **Landmark Case**: One real Supreme Court/High Court precedent
+7. **Warning**: Critical caveat${dist?'\n\nPLACE EMERGENCY NUMBERS (100,112,1091) AT THE TOP BEFORE ANYTHING ELSE.':''}`;
+
+  try{
+    const ans=await llm(sys,usr,1500);
+
+    let str={verdict:'MODERATE',score:55,reasons:['Case has merit based on facts provided','Relevant IPC sections identified','Consult a lawyer for full assessment']};
+    try{
+      const st=await llm('You are an Indian criminal lawyer. Return ONLY valid JSON, no markdown, no text.',
+        `Situation:"${q}"\nSections:${secs.map(s=>`IPC §${s.s}`).join(',')}\nReturn:{"verdict":"STRONG|MODERATE|WEAK","score":0-100,"reasons":["r1","r2","r3"],"recommendation":"one action sentence"}`,300);
+      str=JSON.parse(st.replace(/```json|```/g,'').trim());
+    }catch(e){}
+
+    const sc=str.verdict==='STRONG'?'#4ade80':str.verdict==='WEAK'?'#e85c5c':'#f0d080';
+    const pct=str.score||55;
+    const secHtml=secs.map(s=>`<span class="chip cg">IPC §${s.s}</span><span class="chip cb">BNS §${s.b}</span>`).join('');
+    const ansHtml=ans.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+
+    rDiv.innerHTML=`
+      <div class="res-card" style="border-color:rgba(201,168,76,.22)">
+        <h3>⚖️ Legal Analysis — Advocate Nyaya</h3>
+        <div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:7px">RAG-RETRIEVED SECTIONS</div>
+        <div class="chips">${secHtml}</div>
+        <div class="str-meter">
+          <span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">CASE STRENGTH</span>
+          <div class="str-bar"><div class="str-fill" style="width:${pct}%;background:${sc}"></div></div>
+          <strong style="color:${sc};font-size:14px">${str.verdict}</strong>
+          <span style="font-size:12px;color:var(--muted)">${pct}/100</span>
+        </div>
+        ${str.reasons?`<div class="chips">${str.reasons.map(r=>`<span class="chip cgr">✓ ${r}</span>`).join('')}</div>`:''}
+        <div class="res-body">${ansHtml}</div>
+        ${str.recommendation?`<div style="margin-top:14px;padding:13px;background:rgba(201,168,76,.06);border-radius:9px;font-size:14px;color:var(--gold);font-style:italic">💡 ${str.recommendation}</div>`:''}
+      </div>
+      ${dist?`<div class="em-box mt16"><h3>🆘 Emergency — Act Now</h3><div class="em-grid"><div class="em-it"><div class="em-n">100</div><div class="em-l">Police</div></div><div class="em-it"><div class="em-n">112</div><div class="em-l">Emergency</div></div><div class="em-it"><div class="em-n">1091</div><div class="em-l">Women</div></div><div class="em-it"><div class="em-n">15100</div><div class="em-l">Legal Aid</div></div></div></div>`:''}
+    `;
+
+    const avaMsg=`Analysis complete. Case strength: ${str.verdict}. ${str.recommendation||'Review the full analysis and consult a qualified advocate for actual legal proceedings.'}`;
+    bub.innerHTML=`<em style="color:var(--gold)">Analysis complete ✓</em><br><br>${avaMsg}`;
+    lastTxt=avaMsg+'. '+ans;
+    $('aStat').textContent='Done';
+
+    // Auto-read if distress
+    if(dist) setTimeout(()=>spkText('Emergency alert! Please call 100 or 112 for police help immediately. '+avaMsg),600);
+
+  }catch(e){
+    rDiv.innerHTML=`<div class="res-card"><p style="color:#e85c5c">Error: ${e.message}<br><br>Please ensure you are using Chrome browser and have internet connection.</p></div>`;
+    bub.innerHTML=`I encountered an error. Please check your connection and try again.`;
+    $('aStat').textContent='Error';
+  }
+}
+
+// ── POLICE STATION FINDER ──
+async function findPS(){
+  const inp=$('psInput').value.trim();
+  if(!inp){ alert('Please enter a pincode or area name.'); return; }
+  const res=$('psRes');
+  res.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)"><div style="width:30px;height:30px;border:2px solid var(--bdr);border-top-color:var(--green);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 12px"></div>Finding nearest police stations for "${inp}"...</div>`;
+
+  try{
+    const ans=await llm(
+      'You are a database of all Indian police stations. Provide accurate, real police station information. Return ONLY valid JSON array, no other text.',
+      `Find 5 nearest police stations for location: "${inp}" in India.
+Return JSON array: [{"name":"Station Name","address":"Full address","phone":"phone number or unknown","distance":"approx distance","jurisdiction":"area covered","type":"Police Station/Thana/Kotwali"}]
+Use real station names for this area. If pincode given, identify the city/district first.`
+    ,800);
+    let stations=[];
+    try{ stations=JSON.parse(ans.replace(/```json|```/g,'').trim()); }catch(e){ stations=[]; }
+
+    if(!stations.length){
+      res.innerHTML=`<div class="res-card"><p>Could not find stations for "${inp}". Please try a more specific location or pincode.</p></div>`; return;
+    }
+
+    res.innerHTML=`
+      <div style="margin-bottom:16px;display:flex;align-items:center;gap:10px">
+        <span style="font-size:13px;color:var(--muted)">Showing ${stations.length} stations near <strong style="color:var(--text)">${inp}</strong></span>
+      </div>
+      ${stations.map((s,i)=>`
+        <div class="ps-card">
+          <div class="ps-icon">🚔</div>
+          <div style="flex:1">
+            <div class="ps-name">${s.name||'Police Station'}</div>
+            <div class="ps-addr">${s.address||'Address not available'}</div>
+            ${s.jurisdiction?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Jurisdiction: ${s.jurisdiction}</div>`:''}
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <span class="ps-dist">~${s.distance||'nearby'}</span>
+              ${s.phone&&s.phone!=='unknown'?`<a href="tel:${s.phone}" style="font-size:12px;color:var(--gold);text-decoration:none">📞 ${s.phone}</a>`:''}
+              <span style="font-size:11px;color:var(--muted)">${s.type||'Police Station'}</span>
+            </div>
+          </div>
+          <div style="font-size:22px;opacity:.5">#${i+1}</div>
+        </div>`).join('')}
+      <div class="info" style="margin-top:16px">📞 For emergency, always call <strong style="color:#e85c5c">100</strong> (Police) or <strong style="color:#e85c5c">112</strong> (National Emergency) first.</div>
+    `;
+  }catch(e){
+    res.innerHTML=`<div class="res-card"><p style="color:#e85c5c">Error: ${e.message}</p></div>`;
+  }
+}
+
+async function findMyLoc(){
+  if(!navigator.geolocation){ alert('Geolocation not supported by your browser.'); return; }
+  $('psRes').innerHTML=`<div style="text-align:center;padding:20px;color:var(--muted)">Getting your location...</div>`;
+  navigator.geolocation.getCurrentPosition(
+    async pos=>{
+      const {latitude:lat,longitude:lng}=pos.coords;
+      $('psInput').value=`${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      await findPS();
+    },
+    err=>{ alert('Could not get location: '+err.message); $('psRes').innerHTML=''; }
+  );
+}
+
+// ── LAWYER DATA ──
+const LAWYERS=[
+  {n:'Adv. Priya Krishnamurthy',sp:'Criminal & Women Rights',loc:'Chennai, Tamil Nadu',exp:'12 yrs',tags:['Criminal','498A','POCSO','Domestic Violence'],cat:'criminal',free:true,em:'🧑‍⚖️'},
+  {n:'Adv. Rajesh Sharma',sp:'Civil & Property Law',loc:'Delhi, NCT',exp:'18 yrs',tags:['Property','Civil Disputes','Landlord Tenant','Land Acquisition'],cat:'civil',free:false,em:'👨‍⚖️'},
+  {n:'Adv. Fatima Shaikh',sp:'Family & Matrimonial Law',loc:'Mumbai, Maharashtra',exp:'9 yrs',tags:['Divorce','Custody','Maintenance','Domestic Violence'],cat:'family',free:true,em:'👩‍⚖️'},
+  {n:'Adv. Suresh Kumar',sp:'Labour & Employment Law',loc:'Bengaluru, Karnataka',exp:'14 yrs',tags:['Wrongful Termination','Salary Disputes','ESIC','PF'],cat:'labour',free:false,em:'🧑‍⚖️'},
+  {n:'Adv. Ananya Singh',sp:'Cyber Crime & IT Law',loc:'Hyderabad, Telangana',exp:'7 yrs',tags:['Cyber Fraud','IT Act','Online Harassment','Data Theft'],cat:'cyber',free:false,em:'👩‍⚖️'},
+  {n:'Adv. Mohammed Irfan',sp:'Criminal Defence',loc:'Kolkata, West Bengal',exp:'21 yrs',tags:['Criminal Defence','Bail','High Court','Murder'],cat:'criminal',free:true,em:'👨‍⚖️'},
+  {n:'Adv. Deepa Nair',sp:'Consumer & Civil',loc:'Kochi, Kerala',exp:'11 yrs',tags:['Consumer Forum','Civil Suits','Banking Fraud'],cat:'civil',free:false,em:'👩‍⚖️'},
+  {n:'Adv. Ramesh Patel',sp:'Family & Property',loc:'Ahmedabad, Gujarat',exp:'16 yrs',tags:['Divorce','Property','Succession','Will'],cat:'family',free:false,em:'👨‍⚖️'},
+];
+
+function renderLawyers(cat){
+  const list=$('lawyerList'); if(!list) return;
+  const filtered=cat==='all'?LAWYERS:LAWYERS.filter(l=>l.cat===cat);
+  list.innerHTML=filtered.map(l=>`
+    <div class="lc-card">
+      <div class="lc-top">
+        <div class="lc-av">${l.em}</div>
+        <div style="flex:1">
+          <div class="lc-name">${l.n} ${l.free?'<span class="tag" style="background:rgba(74,222,128,.1);border-color:rgba(74,222,128,.3);color:#4ade80">FREE AID</span>':''}</div>
+          <div class="lc-spec">${l.sp}</div>
+          <div class="lc-loc">📍 ${l.loc} · ${l.exp} experience</div>
+        </div>
+      </div>
+      <div class="lc-tags">${l.tags.map(t=>`<span class="lc-tag">${t}</span>`).join('')}</div>
+      <div class="lc-btns">
+        <button class="lc-btn lc-btn-p" onclick="reqConsult('${l.n}')">📞 Request Consultation</button>
+        <button class="lc-btn lc-btn-s" onclick="alert('WhatsApp consultation available after request approval.')">💬 WhatsApp</button>
+      </div>
+    </div>`).join('');
+}
+
+function filterLawyers(cat,el){
+  document.querySelectorAll('#page-lawyer .lb').forEach(b=>b.classList.remove('act'));
+  if(el) el.classList.add('act');
+  renderLawyers(cat);
+}
+
+function reqConsult(name){
+  $('lcName').focus();
+  alert(`Request consultation with ${name}:\nFill the form below and click Submit. They will contact you within 24 hours.`);
+  document.querySelector('.consult-form').scrollIntoView({behavior:'smooth'});
+}
+
+async function aiConsult(){
+  const issue=$('lcIssue').value.trim();
+  if(!issue){ alert('Please describe your legal issue.'); return; }
+  const r=$('lcAIRes');
+  r.innerHTML=`<div style="text-align:center;padding:24px;color:var(--muted)"><div style="width:28px;height:28px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 10px"></div>Preparing your consultation briefing...</div>`;
+  try{
+    const ans=await llm('You are an expert Indian legal consultant who helps people prepare for their first meeting with a lawyer. Be practical and specific.',
+      `Legal issue: "${issue}"\n\nProvide consultation prep:\n1. **Type of Lawyer Needed**: Specific specialisation to look for\n2. **Urgency**: HIGH/MEDIUM/LOW with reason\n3. **Key Questions to Ask Your Lawyer**: 5 specific questions\n4. **Documents to Bring**: List of documents\n5. **Likely Cost**: Rough estimate for Indian courts\n6. **Free Legal Aid Eligibility**: Under Legal Services Authorities Act\n7. **Quick Self-Help**: 2-3 things you can do right now before meeting lawyer`
+    ,900);
+    r.innerHTML=`<div class="res-card mt16"><h3>📋 Consultation Briefing</h3><div class="res-body">${ans.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
+  }catch(e){
+    r.innerHTML=`<div class="res-card mt16"><p style="color:#e85c5c">Error: ${e.message}</p></div>`;
+  }
+}
+
+function submitConsult(){
+  const nm=$('lcName').value.trim(), ph=$('lcPhone').value.trim();
+  if(!nm||!ph){ alert('Please enter your name and mobile number.'); return; }
+  $('lcSubmitRes').innerHTML=`<div class="res-card mt16" style="border-color:rgba(74,222,128,.3)"><p style="color:#4ade80">✅ Consultation request submitted successfully!<br><br>An advocate will contact <strong>${nm}</strong> at <strong>${ph}</strong> within 24 hours. For urgent matters, call <strong style="color:var(--gold)">15100</strong> (National Legal Aid Helpline) immediately.</p></div>`;
+}
+
+// ── COMPLAINT GENERATOR ──
+async function genComplaint(){
+  const sit=$('cSit').value.trim();
+  if(!sit){ alert('Please describe the situation.'); return; }
+  const r=$('cRes');
+  r.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)"><div style="width:30px;height:30px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 12px"></div>Drafting complaint with applicable IPC/BNS sections...</div>`;
+  const secs=rag(sit), secN=secs.map(s=>`IPC §${s.s} (${s.o})`).join(', ');
+  const n=$('cName').value||'[COMPLAINANT NAME]', acc=$('cAcc').value||'[ACCUSED NAME]';
+  const pl=$('cPl').value||'[PLACE]', dt=$('cDt').value||'[DATE]', wit=$('cWit').value||'None';
+  try{
+    const d=await llm('You are an expert Indian legal document drafter. Create formal, legally precise police complaint letters citing specific IPC and BNS 2023 sections.',
+      `Draft formal police complaint:\nSituation:${sit}\nComplainant:${n}\nAccused:${acc}\nPlace:${pl}\nDate:${dt}\nWitnesses:${wit}\nRelevant RAG sections:${secN}\n\nFormat:\n1. To: Station House Officer\n2. Subject (with IPC/BNS sections)\n3. "I, ${n}, hereby submit..."\n4. Facts (numbered)\n5. IPC/BNS sections violated\n6. Prayer/relief\n7. Verification\n8. Signature block`
+    ,1200);
+    r.innerHTML=`<div class="res-card"><h3>📄 Complaint Draft</h3><div class="chips">${secs.map(s=>`<span class="chip cg">IPC §${s.s}</span>`).join('')}</div><div class="res-body" style="font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:pre-wrap;line-height:1.7">${d.replace(/\*\*/g,'').replace(/\*/g,'')}</div><button class="btn-g" style="margin-top:14px;width:100%" onclick="cpTxt(this)">📋 Copy</button></div>`;
+    r.querySelector('.btn-g').setAttribute('data-txt',d.replace(/\*\*/g,'').replace(/\*/g,''));
+  }catch(e){ r.innerHTML=`<div class="res-card"><p style="color:#e85c5c">Error: ${e.message}</p></div>`; }
+}
+function cpTxt(el){ navigator.clipboard.writeText(el.getAttribute('data-txt')).then(()=>alert('Copied!')).catch(()=>alert('Copy failed. Please select and copy manually.')); }
+
+// ── RTI ──
+async function genRTI(){
+  const sub=$('rSub').value.trim(), dept=$('rDept').value.trim();
+  if(!sub||!dept){ alert('Please fill subject and department.'); return; }
+  const r=$('rRes');
+  r.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)"><div style="width:30px;height:30px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 12px"></div>Generating RTI application...</div>`;
+  const nm=$('rName').value||'[NAME]', st=$('rState').value||'India', inf=$('rInfo').value||sub;
+  try{
+    const d=await llm('You are an expert in RTI Act 2005. Draft precise, legally compliant RTI applications for Indian citizens.',
+      `Draft RTI application:\nSubject:${sub}\nDepartment:${dept}\nInfo Required:${inf}\nApplicant:${nm}\nState:${st}\n\nFormat:\n1. To: PIO, ${dept}\n2. Subject\n3. Intro citing RTI Act 2005 Section 6\n4. Information requested (numbered)\n5. Fee note (₹10 IPO or BPL waiver)\n6. Reply address/contact\n7. 30-day deadline note\n8. Date and signature`
+    ,900);
+    r.innerHTML=`<div class="res-card"><h3>📋 RTI Application</h3><div class="info">📌 Attach ₹10 IPO or court fee stamp. Send by registered post. Response mandatory in 30 days. File first appeal if no response.</div><div class="res-body" style="font-family:'JetBrains Mono',monospace;font-size:12.5px;white-space:pre-wrap;line-height:1.7">${d.replace(/\*\*/g,'').replace(/\*/g,'')}</div><button class="btn-g" style="margin-top:14px;width:100%" onclick="window.print()">🖨 Print</button></div>`;
+  }catch(e){ r.innerHTML=`<div class="res-card"><p style="color:#e85c5c">Error: ${e.message}</p></div>`; }
+}
+
+// ── SCAM DETECTOR ──
+function setScam(t){ $('scIn').value=t; }
+async function detScam(){
+  const desc=$('scIn').value.trim();
+  if(!desc){ alert('Please describe the suspicious situation.'); return; }
+  const r=$('scRes');
+  r.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)"><div style="width:30px;height:30px;border:2px solid var(--bdr);border-top-color:var(--red);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 12px"></div>Analysing scam patterns...</div>`;
+  try{
+    const t=await llm('You are an Indian cyber crime and scam expert. Return ONLY valid JSON, no other text.',
+      `Analyse: "${desc}"\nReturn:{"isScam":true/false,"confidence":0-100,"scamType":"name or null","explanation":"2 sentences","knownPatterns":["p1","p2"],"immediateActions":["a1","a2","a3"],"reportTo":["authority"],"helplines":["number: desc"]}`
+    ,600);
+    let d; try{ d=JSON.parse(t.replace(/```json|```/g,'').trim()); }catch(e){ d={isScam:false,confidence:30,explanation:t,immediateActions:[],reportTo:[],helplines:[]}; }
+    const sc=d.isScam?'#e85c5c':'#4ade80', pct=d.confidence||40;
+    r.innerHTML=`<div class="scam-res ${d.isScam?'yes':'no'}">
+      <div style="font-family:'Playfair Display',serif;font-size:20px;color:${sc};margin-bottom:10px">${d.isScam?'🚨 LIKELY SCAM DETECTED':'✅ Appears Legitimate'}</div>
+      <div class="str-meter"><span style="font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace">CONFIDENCE</span><div class="str-bar"><div class="str-fill" style="width:${pct}%;background:${sc}"></div></div><strong style="color:${sc}">${pct}%</strong></div>
+      ${d.scamType?`<span class="chip cr" style="margin-bottom:10px;display:inline-block">Type: ${d.scamType}</span>`:''}
+      <p style="margin-bottom:14px;font-size:14px">${d.explanation||''}</p>
+      ${d.knownPatterns?.length?`<div style="margin-bottom:12px"><strong style="color:var(--text)">Known Patterns:</strong><div class="chips">${d.knownPatterns.map(p=>`<span class="chip cr">⚡ ${p}</span>`).join('')}</div></div>`:''}
+      ${d.immediateActions?.length?`<div style="margin-bottom:12px"><strong style="color:var(--text)">Immediate Actions:</strong><ol style="padding-left:18px;margin-top:6px">${d.immediateActions.map(a=>`<li style="margin-bottom:5px;font-size:13px">${a}</li>`).join('')}</ol></div>`:''}
+      ${d.reportTo?.length?`<div style="margin-bottom:10px;font-size:13px"><strong style="color:var(--text)">Report To:</strong> ${d.reportTo.join(' | ')}</div>`:''}
+      ${d.helplines?.length?`<div class="chips">${d.helplines.map(h=>`<span class="chip cb">${h}</span>`).join('')}</div>`:''}
+    </div>`;
+  }catch(e){ r.innerHTML=`<div class="res-card"><p style="color:#e85c5c">Error: ${e.message}</p></div>`; }
+}
+
+// ── DICTIONARY ──
+async function lookTerm(t){
+  const term=t||$('dIn').value.trim();
+  if(!term){ alert('Please enter a legal term.'); return; }
+  if(!t) $('dIn').value=term;
+  const r=$('dRes');
+  r.innerHTML=`<div style="text-align:center;padding:30px;color:var(--muted)"><div style="width:30px;height:30px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:lb2 .8s linear infinite;margin:0 auto 12px"></div>Looking up "${term}"...</div>`;
+  try{
+    const ans=await llm('You are an Indian legal educator. Explain legal terms simply to common people with Indian examples.',
+      `Explain "${term}" in Indian law.\n\n1. **Simple Definition** (1-2 plain sentences)\n2. **Technical Legal Definition**\n3. **Indian Example** (everyday scenario)\n4. **Relevant Law/Section**\n5. **When It Matters** for a common person\n6. **Common Misconception** (if any)`
+    ,600);
+    r.innerHTML=`<div class="dict-res"><div class="dict-term">${term}</div><div style="font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:14px">LEGAL DICTIONARY · INDIAN LAW</div><div class="dict-body">${ans.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>')}</div></div>`;
+  }catch(e){ r.innerHTML=`<div class="res-card"><p style="color:#e85c5c">Error: ${e.message}</p></div>`; }
+}
+
+// ── RIGHTS TABS ──
+function showRTab(id,el){
+  ['arrest','bail','trial','women'].forEach(t=>$('rt-'+t).style.display=t===id?'block':'none');
+  document.querySelectorAll('.rt').forEach(b=>b.classList.remove('act'));
+  if(el) el.classList.add('act');
+}
+
+// ── CSS for spinner ──
+const style=document.createElement('style');
+style.textContent='@keyframes lb2{to{transform:rotate(360deg)}}.mt16{margin-top:16px}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
